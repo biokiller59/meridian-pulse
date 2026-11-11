@@ -182,7 +182,7 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
 @media(max-width:720px){
   :root{--wy:36%}
-  header{grid-template-columns:1fr auto;padding:14px 18px}
+  header{grid-template-columns:1fr auto;padding:10px 18px;background:#050507cc;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
   header nav{display:none}
   .pos{width:min(30vh,56vw)}
   #pin[data-step] .pos{--sx:0vw}
@@ -190,12 +190,13 @@ footer .row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .panel,.p1,.p2,.p3{inset:auto 20px 5vh;top:auto;width:auto;transform:none;text-align:left}
   .p0{display:block}
   .p3 p{margin-inline:0}
-  .sw{bottom:auto;top:64px}
+  .sw{bottom:auto;top:36%;left:8px;translate:0 -50%;flex-direction:column}
   .dots{right:10px}
   section{padding:80px 0}
   .bento,.models{grid-template-columns:1fr}
   .cell,.cell.wide{grid-column:auto;min-height:240px}
   form{flex-direction:column}
+  .ecg{inset:88px 0 auto;height:44px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
@@ -526,10 +527,11 @@ watch.traverse(o => {
 scene.add(watch);
 
 // размер и место часов на экране те же, что были у нарисованных (см. .pos и --wy в CSS)
-let baseY = 0, shift = 0;
+let baseY = 0, shift = 0, lw = 0, lh = 0;
 function layout() {
   const w = pin.clientWidth, h = pin.clientHeight, m = w <= 720;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h, false);
+  if (w === lw && h === lh) return; lw = w; lh = h; // на телефоне resize прилетает при каждом скрытии адресной строки — холст не трогаем
+  renderer.setPixelRatio(Math.min(devicePixelRatio, m ? 1.5 : 2)); renderer.setSize(w, h, false);
   const view = 1 / (m ? Math.min(.5, .9 * w / h) : Math.min(.68, .6 * w / h)); // высота кадра в «часах»
   cam.aspect = w / h; cam.position.z = view / 2 / Math.tan(cam.fov * Math.PI / 360); cam.updateProjectionMatrix();
   baseY = (m ? .14 : .06) * view; shift = m ? 0 : .23 * view * w / h;
@@ -537,7 +539,7 @@ function layout() {
 addEventListener('resize', layout); layout();
 
 let mx = 0, my = 0, shown = 0, since = performance.now();
-pin.addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
+pin.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; mx =e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
 
 const cur = { x: 0, ry: -2.6, rx: 0, s: .5 }, col = new THREE.Color();
 function frame(now) {
